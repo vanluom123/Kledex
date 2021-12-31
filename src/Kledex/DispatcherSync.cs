@@ -1,6 +1,7 @@
 ﻿using System;
 using Kledex.Commands;
 using Kledex.Events;
+using Kledex.Queries;
 
 namespace Kledex
 {
@@ -54,6 +55,12 @@ namespace Kledex
             where TEvent : IEvent
         {
             _eventPublisher.Publish(@event);
+        }
+
+        /// <inheritdoc />
+        public TResult GetResult<TResult>(IQuery<TResult> query)
+        {
+            return _queryProcessor.Process(query);
         }
     }
 }

@@ -34,18 +34,16 @@ namespace Kledex.Store.EF
         {
             var result = new List<DomainEvent>();
 
-            using (var dbContext = _dbContextFactory.CreateDbContext())
-            {
-                var events = dbContext.Events
-                    .Where(x => x.AggregateId == aggregateId)
-                    .OrderBy(x => x.Sequence)
-                    .ToList();
+            using var dbContext = _dbContextFactory.CreateDbContext();
+            var events = dbContext.Events
+                .Where(x => x.AggregateId == aggregateId)
+                .OrderBy(x => x.Sequence)
+                .ToList();
 
-                foreach (var @event in events)
-                {
-                    var domainEvent = JsonConvert.DeserializeObject(@event.Data, Type.GetType(@event.Type));
-                    result.Add((DomainEvent)domainEvent);
-                }
+            foreach (var @event in events)
+            {
+                var domainEvent = JsonConvert.DeserializeObject(@event.Data, Type.GetType(@event.Type));
+                result.Add((DomainEvent)domainEvent);
             }
 
             return result;
@@ -55,18 +53,16 @@ namespace Kledex.Store.EF
         {
             var result = new List<DomainEvent>();
 
-            using (var dbContext = _dbContextFactory.CreateDbContext())
-            {
-                var events = await dbContext.Events
-                    .Where(x => x.AggregateId == aggregateId)
-                    .OrderBy(x => x.Sequence)
-                    .ToListAsync();
+            await using var dbContext = _dbContextFactory.CreateDbContext();
+            var events = await dbContext.Events
+                .Where(x => x.AggregateId == aggregateId)
+                .OrderBy(x => x.Sequence)
+                .ToListAsync();
 
-                foreach (var @event in events)
-                {
-                    var domainEvent = JsonConvert.DeserializeObject(@event.Data, Type.GetType(@event.Type));
-                    result.Add((DomainEvent)domainEvent);
-                }
+            foreach (var @event in events)
+            {
+                var domainEvent = JsonConvert.DeserializeObject(@event.Data, Type.GetType(@event.Type));
+                result.Add((DomainEvent)domainEvent);
             }
 
             return result;
@@ -74,60 +70,56 @@ namespace Kledex.Store.EF
 
         public void Save(SaveStoreData request)
         {
-            using (var dbContext = _dbContextFactory.CreateDbContext())
+            using var dbContext = _dbContextFactory.CreateDbContext();
+            var aggregateEntity = dbContext.Aggregates.FirstOrDefault(x => x.Id == request.AggregateRootId);
+            if (aggregateEntity == null)
             {
-                var aggregateEntity = dbContext.Aggregates.FirstOrDefault(x => x.Id == request.AggregateRootId);
-                if (aggregateEntity == null)
-                {
-                    var newAggregateEntity = _aggregateEntityFactory.CreateAggregate(request.AggregateType, request.AggregateRootId);
-                    dbContext.Aggregates.Add(newAggregateEntity);
-                }
-
-                if (request.DomainCommand != null)
-                {
-                    var newCommandEntity = _commandEntityFactory.CreateCommand(request.DomainCommand);
-                    dbContext.Commands.Add(newCommandEntity);
-                }
-
-                foreach (var @event in request.Events)
-                {
-                    var currentVersion = dbContext.Events.Count(x => x.AggregateId == @event.AggregateRootId);
-                    var nextVersion = _versionService.GetNextVersion(@event.AggregateRootId, currentVersion, request.DomainCommand?.ExpectedVersion);
-                    var newEventEntity = _eventEntityFactory.CreateEvent(@event, nextVersion);
-                    dbContext.Events.Add(newEventEntity);
-                }
-
-                dbContext.SaveChanges();
+                var newAggregateEntity = _aggregateEntityFactory.CreateAggregate(request.AggregateType, request.AggregateRootId);
+                dbContext.Aggregates.Add(newAggregateEntity);
             }
+
+            if (request.DomainCommand != null)
+            {
+                var newCommandEntity = _commandEntityFactory.CreateCommand(request.DomainCommand);
+                dbContext.Commands.Add(newCommandEntity);
+            }
+
+            foreach (var @event in request.Events)
+            {
+                var currentVersion = dbContext.Events.Count(x => x.AggregateId == @event.AggregateRootId);
+                var nextVersion = _versionService.GetNextVersion(@event.AggregateRootId, currentVersion, request.DomainCommand?.ExpectedVersion);
+                var newEventEntity = _eventEntityFactory.CreateEvent(@event, nextVersion);
+                dbContext.Events.Add(newEventEntity);
+            }
+
+            dbContext.SaveChanges();
         }
 
         public async Task SaveAsync(SaveStoreData request)
         {
-            using (var dbContext = _dbContextFactory.CreateDbContext())
+            await using var dbContext = _dbContextFactory.CreateDbContext();
+            var aggregateEntity = await dbContext.Aggregates.FirstOrDefaultAsync(x => x.Id == request.AggregateRootId);
+            if (aggregateEntity == null)
             {
-                var aggregateEntity = await dbContext.Aggregates.FirstOrDefaultAsync(x => x.Id == request.AggregateRootId);
-                if (aggregateEntity == null)
-                {
-                    var newAggregateEntity = _aggregateEntityFactory.CreateAggregate(request.AggregateType, request.AggregateRootId);
-                    await dbContext.Aggregates.AddAsync(newAggregateEntity);
-                }
-
-                if (request.DomainCommand != null)
-                {
-                    var newCommandEntity = _commandEntityFactory.CreateCommand(request.DomainCommand);
-                    await dbContext.Commands.AddAsync(newCommandEntity);
-                }
-
-                foreach (var @event in request.Events)
-                {
-                    var currentVersion = await dbContext.Events.CountAsync(x => x.AggregateId == @event.AggregateRootId);
-                    var nextVersion = _versionService.GetNextVersion(@event.AggregateRootId, currentVersion, request.DomainCommand?.ExpectedVersion);
-                    var newEventEntity = _eventEntityFactory.CreateEvent(@event, nextVersion);
-                    await dbContext.Events.AddAsync(newEventEntity);
-                }
-
-                await dbContext.SaveChangesAsync();
+                var newAggregateEntity = _aggregateEntityFactory.CreateAggregate(request.AggregateType, request.AggregateRootId);
+                await dbContext.Aggregates.AddAsync(newAggregateEntity);
             }
+
+            if (request.DomainCommand != null)
+            {
+                var newCommandEntity = _commandEntityFactory.CreateCommand(request.DomainCommand);
+                await dbContext.Commands.AddAsync(newCommandEntity);
+            }
+
+            foreach (var @event in request.Events)
+            {
+                var currentVersion = await dbContext.Events.CountAsync(x => x.AggregateId == @event.AggregateRootId);
+                var nextVersion = _versionService.GetNextVersion(@event.AggregateRootId, currentVersion, request.DomainCommand?.ExpectedVersion);
+                var newEventEntity = _eventEntityFactory.CreateEvent(@event, nextVersion);
+                await dbContext.Events.AddAsync(newEventEntity);
+            }
+
+            await dbContext.SaveChangesAsync();
         }
     }
 }

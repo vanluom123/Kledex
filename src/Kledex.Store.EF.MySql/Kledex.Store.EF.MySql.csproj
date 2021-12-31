@@ -1,19 +1,19 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>netstandard2.1</TargetFramework>
-    <Description>MySQL database provider for Kledex domain store.</Description>
-    <PackageTags>$(PackageTags), ef, entity framework, mysql</PackageTags>
-    <PackageLicenseExpression>$(PackageLicense)</PackageLicenseExpression>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-  </PropertyGroup>
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="MySql.Data.EntityFrameworkCore" Version="8.0.20" />
-  </ItemGroup>
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+      <OutputPath>..\bin\Release\</OutputPath>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Kledex.Store.EF\Kledex.Store.EF.csproj" />
-  </ItemGroup>
+    <ItemGroup>
+      <PackageReference Include="MySql.Data.EntityFrameworkCore" Version="8.0.22" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Kledex.Store.EF\Kledex.Store.EF.csproj" />
+    </ItemGroup>
 
 </Project>

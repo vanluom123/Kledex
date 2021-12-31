@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Windows.Input;
 using AutoMapper;
 using Kledex.Events;
+using Kledex.Queries;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Kledex.Extensions
@@ -23,7 +24,8 @@ namespace Kledex.Extensions
                     var typesToMap = type.Assembly.GetTypes()
                         .Where(t => t.GetTypeInfo().IsClass && !t.GetTypeInfo().IsAbstract && (
                         typeof(ICommand).IsAssignableFrom(t) || 
-                        typeof(IEvent).IsAssignableFrom(t)))
+                        typeof(IEvent).IsAssignableFrom(t) || 
+                        typeof(IQuery<>).IsAssignableFrom(t)))
                         .ToList();
 
                     foreach (var typeToMap in typesToMap)

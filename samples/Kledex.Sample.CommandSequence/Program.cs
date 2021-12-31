@@ -1,21 +1,21 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using System;
+﻿using System;
 using Kledex.Extensions;
 using Kledex.Sample.CommandSequence.Commands;
 using Kledex.Utilities;
 using Kledex.Validation.FluentValidation.Extensions;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Kledex.Sample.CommandSequence
 {
-    class Program
+    internal class Program
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             var serviceProvider = ConfigureServices();
 
             var dispatcher = serviceProvider.GetService<IDispatcher>();
 
-            var result = AsyncUtil.RunSync(() => dispatcher.SendAsync<string>(new SampleCommandSequence()));
+            var result = AsyncUtil.RunSync(() => dispatcher!.SendAsync<string>(new SampleCommandSequence()));
 
             Console.WriteLine($"Final result: {result}");
 

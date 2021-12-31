@@ -4,6 +4,7 @@ using Kledex.Bus;
 using Kledex.Commands;
 using Kledex.Domain;
 using Kledex.Events;
+using Kledex.Queries;
 
 namespace Kledex
 {
@@ -16,14 +17,17 @@ namespace Kledex
     {
         private readonly ICommandSender _commandSender;
         private readonly IEventPublisher _eventPublisher;
+        private readonly IQueryProcessor _queryProcessor;
         private readonly IBusMessageDispatcher _busMessageDispatcher;
 
         public Dispatcher(ICommandSender domainCommandSender,
             IEventPublisher eventPublisher,
+            IQueryProcessor queryProcessor,
             IBusMessageDispatcher busMessageDispatcher)
         {
             _commandSender = domainCommandSender;
             _eventPublisher = eventPublisher;
+            _queryProcessor = queryProcessor;
             _busMessageDispatcher = busMessageDispatcher;
         }
 
@@ -70,6 +74,12 @@ namespace Kledex
             where TEvent : IEvent
         {
             return _eventPublisher.PublishAsync(@event);
+        }
+
+        /// <inheritdoc />
+        public Task<TResult> GetResultAsync<TResult>(IQuery<TResult> query)
+        {
+            return _queryProcessor.ProcessAsync(query);
         }
 
         /// <inheritdoc />
