@@ -24,13 +24,13 @@ namespace Kledex.Utilities
         {
             // First fetch the generic form
             MethodInfo genericHelper = typeof(Magic).GetMethod("MagicMethodHelper",
-                BindingFlags.Static | BindingFlags.NonPublic,
-                null,
-                new Type[] { typeof(T), typeof(object), typeof(object) },
-                null);
+                BindingFlags.Static | BindingFlags.NonPublic);
 
-            // Now supply the type arguments
-            MethodInfo constructedHelper = genericHelper!.MakeGenericMethod
+            if (genericHelper == null)
+                throw new NullReferenceException();
+
+                // Now supply the type arguments
+            MethodInfo constructedHelper = genericHelper.MakeGenericMethod
                 (typeof(T), method.GetParameters()[0].ParameterType, method.ReturnType);
 
             // Now call it. The null argument is because it's a static method.

@@ -16,6 +16,7 @@ namespace Kledex.Bus.ServiceBus.Extensions
         /// Adds the service bus provider.
         /// </summary>
         /// <param name="builder">The builder.</param>
+        /// <param name="configureOptions"></param>
         /// <returns></returns>
         public static IKledexServiceBuilder AddServiceBus(this IKledexServiceBuilder builder, Action<BusOptions> configureOptions)
         {
